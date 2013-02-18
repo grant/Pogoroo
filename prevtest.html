@@ -1,0 +1,484 @@
+<html>
+<head>
+  <script src="processing.js"></script>
+  <style>
+  	html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; } /* HTML5 display-role reset for older browsers */ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {display: block; } body {line-height: 1; } ol, ul {list-style: none; } blockquote, q {quotes: none; } blockquote:before, blockquote:after, q:before, q:after {content: ''; content: none; } table {border-collapse: collapse; border-spacing: 0; } </style>
+
+<!-- Scripts -->
+<script src="processing.js"></script>
+<script src="jquery-1.9.1.min.js"></script>
+
+<!-- Processing -->
+<script type="text/processing" data-processing-target="mycanvas">
+//constants
+var IMAGE_URL_PREFIX = 'images/';
+
+var WIDTH = 800;
+var HEIGHT = 600;
+var FRAME_RATE = 30;
+var TILE_SIZE = 40;//the size in pixels
+
+//images
+var images = {};
+var chars = {};
+
+//array of objects
+var particles = [];
+
+//current state
+var backgroundColor = color(200, 200, 200);
+
+var cameraX = 20;//pixels
+var cameraY = 0;//pixels
+
+var tileId = [];//tile name to tile id
+var tileAngle = [];
+var map =
+[
+
+
+[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 34, 17, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 66, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 15, 15, 15, 15, 15, 00, 15, 15, 15, 15, 15, 15, 15, 36, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 15, 00, 00, 15, 15, 15, 15, 15, 21, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 34, 17, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 24, 24, 24, 15, 24, 24, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 46, 15, 15, 00, 15, 15, 15, 15, 15, 15, 15, 21, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 15, 00, 00, 15, 15, 15, 15, 15, 15, 21, 00, 00, 00, 00, 00, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 15, 15, 15, 34, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 43, 00, 00, 00, 44, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 39, 15, 00, 15, 15, 15, 15, 15, 15, 15, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 46, 15, 21, 00, 00, 00, 00, 00, 44, 00, 00, 00, 00, 00, 00, 00, 00, 00, 43, 00, 00, 00, 00, 00, 00, 00, 43, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 15, 15, 15, 15, 15, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 27, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 24, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 46, 15, 21, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 15, 15, 15, 15, 15, 15, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 69, 00, 00, 00, 00, 00, 00, 27, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 46, 15, 21, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 35, 67, 67, 67, 67, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 17, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 46, 15, 21, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 20, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 42, 51, 49, 28, 00, 00, 15, 45, 00, 00, 46, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 16, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 24, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 46, 15, 15, 15, 15, 15, 15, 15, 15, 15, 67, 00, 00, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 35, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 15, 15, 34, 17, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 43, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 44, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 20, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 35, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 15, 15, 15, 15, 34, 17, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 24, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 35, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 00, 16, 24, 17, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 15, 15, 15, 00, 00, 15, 15, 19, 00, 00, 00, 00, 00, 20, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 15, 15, 15, 15, 15, 15, 34, 17, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 20, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 28, 00, 00, 00, 00, 00, 00, 18, 15, 00, 00, 00, 00, 00, 00, 27, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 15, 15, 15, 15, 00, 00, 15, 15, 15, 19, 00, 00, 16, 33, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 15, 15, 15, 15, 15, 15, 15, 15, 34, 17, 00, 00, 00, 00, 00, 00, 00, 15, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 18, 15, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [00, 00, 00, 00, 16, 33, 15, 15, 15, 15, 15, 34, 17, 00, 00, 00, 00, 00, 16, 24, 17, 00, 00, 18, 28, 00, 00, 00, 00, 16, 33, 15, 15, 00, 00, 00, 00, 00, 00, 27, 17, 00, 00, 00, 00, 68, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 68, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 15, 15, 15, 15, 15, 15, 15, 15, 00, 00, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 66, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 00, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 34, 17, 00, 00, 00, 00, 16, 15, 15, 15, 19, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 16, 33, 15, 15, 15, 15, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+   [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 69, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 69, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 68, 68, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 67, 68, 15, 15, 67, 68, 15, 15, 67, 68, 15, 15, 15, 67, 68, 15, 15, 15, 15, 15, 15, 15, 15, 67, 68, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]
+
+
+
+
+
+	// [00,00,01,00,00,01,00,00,01,00,00,01,00,00,01,00,00,01,00,00],
+	// [00,01,01,02,02,01,00,00,01,00,00,01,00,00,01,00,00,01,00,06],
+	// [01,01,01,01,22,01,01,22,01,01,22,01,01,22,01,01,22,01,01,22]
+
+
+
+
+
+];
+
+
+var player = {x: 0, y: 0, angle: 0, vx: 0, vy: 0, animationState: 0, animationStartFrame: 0, animationTime: 0};
+
+//Processing
+void setup() {
+	size(WIDTH, HEIGHT);
+
+	setupTileIds();
+	setupTileAngles();
+	setupChars();//roo and enemies
+}
+
+void setupTileIds() {
+	tileId[1] = 'backgroundTile.png';
+	tileId[2] = 'birds.png';
+	tileId[3] = 'boostBlock.png';
+	tileId[4] = 'boostBlock1.png';
+	tileId[5] = 'boostBlock2.png';
+	tileId[6] = 'boostBlock3.png';
+	tileId[7] = 'bush.png';
+	tileId[8] = 'bushBerry.png';
+	tileId[9] = 'disappearingBlock.png';
+	tileId[10] = 'disappearingBlock2.png';
+	tileId[11] = 'disappearingBlock3.png';
+	tileId[12] = 'disappearingBlock4.png';
+	tileId[13] = 'disappearingBlock5.png';
+	tileId[14] = 'disappearingBlock6.png';
+	tileId[15] = 'disappearingBlock7.png';
+	tileId[16] = 'disappearingBlock8.png';
+	tileId[17] = 'disappearingBlock9.png';
+	tileId[18] = 'disappearingBlock10.png';
+	tileId[19] = 'flowerPink.png';
+	tileId[20] = 'flowerPurple.png';
+	tileId[21] = 'flowerRed.png';
+	tileId[22] = 'flowerYellow.png';
+	tileId[23] = 'jungle30Left.png';
+	tileId[24] = 'jungle30LeftHorizontal.png';
+	tileId[25] = 'jungle30Right.png';
+	tileId[26] = 'jungle30RightHorizontal.png';
+	tileId[27] = 'jungle45Left.png';
+	tileId[28] = 'jungle45Right.png';
+	tileId[29] = 'jungle60Left.png';
+	tileId[30] = 'jungle60LeftMiddle.png';
+	tileId[31] = 'jungle60Right.png';
+	tileId[32] = 'jungle60RightMiddle.png';
+	tileId[33] = 'jungleCeiling1.png';
+	tileId[34] = 'jungleCeiling2.png';
+	tileId[35] = 'jungleCeiling3.png';
+	tileId[36] = 'jungleCeiling4.png';
+	tileId[37] = 'jungleCeiling5.png';
+	tileId[38] = 'jungleCeiling6.png';
+	tileId[39] = 'jungleCeiling7.png';
+	tileId[40] = 'jungleCeiling8.png';
+	tileId[41] = 'jungleCeiling9.png';
+	tileId[42] = 'jungleCeiling10.png';
+	tileId[43] = 'jungleCeiling11.png';
+	tileId[44] = 'jungleCeiling12.png';
+	tileId[45] = 'jungleCeiling13.png';
+	tileId[46] = 'jungleCeiling14.png';
+	tileId[47] = 'jungleCeiling15.png';
+	tileId[48] = 'jungleCornerLeft.png';
+	tileId[49] = 'jungleCornerRight.png';
+	tileId[50] = 'jungleHorizontal.png';
+	tileId[51] = 'jungleNoCornerLeft.png';
+	tileId[52] = 'jungleNoCornerRight.png';
+	tileId[53] = 'junglePeak60Left.png';
+	tileId[54] = 'junglePeak60Right.png';
+	tileId[55] = 'jungleSquare.png';
+	tileId[56] = 'jungleVerticalLeft.png';
+	tileId[57] = 'jungleVerticalRight.png';
+	tileId[58] = 'monkey.png';
+	tileId[59] = 'palmTree.png';
+	tileId[60] = 'plant.png'
+	tileId[61] = 'sand30Left.png';
+	tileId[62] = 'sand30LeftHorizontal.png';
+	tileId[63] = 'sand30Right.png';
+	tileId[64] = 'sand30RightHorizontal.png';
+	tileId[65] = 'sand45Left.png';
+	tileId[66] = 'sand45Right.png';
+	tileId[67] = 'sand60Left.png';
+	tileId[68] = 'sand60LeftMiddle.png';
+	tileId[69] = 'sand60Right.png';
+	tileId[70] = 'sand60RightMiddle.png';
+	tileId[71] = 'sandCeiling1.png';
+	tileId[72] = 'sandCeiling2.png';
+	tileId[73] = 'sandCeiling3.png';
+	tileId[74] = 'sandCeiling4.png';
+	tileId[75] = 'sandCeiling5.png';
+	tileId[76] = 'sandCeiling6.png';
+	tileId[77] = 'sandCeiling7.png';
+	tileId[78] = 'sandCeiling8.png';
+	tileId[79] = 'sandCeiling9.png';
+	tileId[80] = 'sandCeiling10.png';
+	tileId[81] = 'sandCeiling11.png';
+	tileId[82] = 'sandCeiling12.png';
+	tileId[83] = 'sandCeiling13.png';
+	tileId[84] = 'sandCeiling14.png';
+	tileId[85] = 'sandCeiling15.png';
+	tileId[86] = 'sandCornerLeft.png';
+	tileId[87] = 'sandCornerRight.png';
+	tileId[88] = 'sandHorizontal.png';
+	tileId[89] = 'sandNoCornerLeft.png';
+	tileId[90] = 'sandNoCornerRight.png';
+	tileId[91] = 'sandPeak60Left.png';
+	tileId[92] = 'sandPeak60Right.png';
+	tileId[93] = 'sandSquare.png';
+	tileId[94] = 'sandVerticalLeft.png';
+	tileId[95] = 'sandVerticalRight.png';
+	tileId[96] = 'sky.png';
+	tileId[97] = 'spikesBottom.png';
+	tileId[98] = 'spikesLeft.png';
+	tileId[99] = 'spikesRight.png';
+	tileId[100] = 'spikesTop.png';
+	tileId[101] = 'springBlock1.png';
+	tileId[102] = 'springBlock2.png';
+	tileId[103] = 'springBlock3.png';
+	tileId[104] = 'springBlock4.png';
+	tileId[105] = 'vine.png';
+
+	for(var fileName in tileId) {
+		getImage(tileId[fileName]);
+	}
+}
+
+void setupTileAngles() {
+	for(var i = 0;i<105;i++) {
+		tileAngle[i] = -1;
+	}
+	tileAngle[1] = 1;
+	tileAngle[2] = 30;
+	tileAngle[3] = -30;
+	tileAngle[4] = 45;
+	tileAngle[5] = -45;
+	tileAngle[6] = 60;
+	tileAngle[7] = -60;
+	tileAngle[8] = 0;
+	tileAngle[9] = 0;
+	tileAngle[10] = 0;
+	tileAngle[11] = 0;
+	tileAngle[12] = -45;
+	tileAngle[13] = 90;
+	tileAngle[14] = -90;
+	tileAngle[29] = 30;
+	tileAngle[30] = -30;
+	tileAngle[31] = 60;
+	tileAngle[32] = -60;
+	tileAngle[52] = 30;
+	tileAngle[53] = -30;
+	tileAngle[54] = 60;
+	tileAngle[55] = -60;
+	tileAngle[56] = 30;
+	tileAngle[57] = -30;
+	tileAngle[58] = 60;
+	tileAngle[59] = -60;
+	tileAngle[60] =45;
+	tileAngle[61] = -45;
+	tileAngle[62] = 45;
+	tileAngle[63] = -45;
+	tileAngle[64] = -45;
+	tileAngle[65] = 45;
+	tileAngle[66] = 0;
+	tileAngle[71] = -60;
+	tileAngle[15] = 0;
+	tileAngle[16] = 30;
+	tileAngle[17] = -30;
+	tileAngle[18] = 45;
+	tileAngle[19] = -45;
+	tileAngle[20] = 60;
+	tileAngle[21] = -60;
+	tileAngle[22] = 0;
+	tileAngle[23] = 0;
+	tileAngle[24] = 0;
+	tileAngle[25] = 45;
+	tileAngle[26] = -45;
+	tileAngle[27] = 90;
+	tileAngle[28] = -90;
+	tileAngle[33] = 30;
+	tileAngle[34] = -30;
+	tileAngle[35] = 60;
+	tileAngle[36] = -60;
+	tileAngle[37] = 30;
+	tileAngle[38] = 30;
+	tileAngle[39] = 60;
+	tileAngle[40] = -60;
+	tileAngle[41] = -30;
+	tileAngle[42] = 30;
+	tileAngle[43] = 60;
+	tileAngle[44] = -60;
+	tileAngle[45] = -45;
+	tileAngle[46] = 45;
+	tileAngle[47] = -45;
+	tileAngle[48] = 45;
+	tileAngle[49] = 45;
+	tileAngle[50] = -45;
+	tileAngle[51] = 0;
+	tileAngle[67] = 0;
+	tileAngle[68] = 0;
+	tileAngle[69] = 0;
+}
+
+void setupChars() {
+	chars.roo = [
+		'roo1.png',
+		'roo2.png',
+		'roo3.png',
+		'roo4.png'
+	];
+
+	for(var fileName in chars.roo) {
+		getImage(chars.roo[fileName]);
+	}
+}
+
+void draw() {
+	drawUI();
+}
+
+// Draws the UI
+void drawUI() {
+	//background
+	background(backgroundColor);
+	//behind
+	//tiles
+
+	//start tiles
+	var numTilesX = Math.floor(WIDTH / TILE_SIZE) + 2;
+	var startTileX = Math.floor(cameraX / TILE_SIZE) - 1;
+	var endTileX = startTileX + numTilesX+1;
+	startTileX = Math.max(0, startTileX);
+	endTileX = Math.min(map[0].length, endTileX);
+
+	//end tiles
+	var numTilesY = Math.floor(HEIGHT / TILE_SIZE) + 2;
+	var startTileY = Math.floor(cameraY / TILE_SIZE) - 1;
+	var endTileY = startTileY + numTilesY+1;
+	startTileY = Math.max(0, startTileY);
+	endTileY = Math.min(map.length, endTileY);
+
+	for (var i = startTileY; i < endTileY; i++) {//y
+		for (var j = startTileX; j < endTileX; j++) {//x
+			var thisTileId = map[i][j];
+			var tileFileName = tileId[thisTileId];
+			if (tileFileName) {
+				image(
+					images[tileFileName],
+					(j * TILE_SIZE) - (cameraX),
+					(i * TILE_SIZE) - (cameraY),
+					TILE_SIZE,
+					TILE_SIZE
+				);
+			}
+		}
+	}
+
+	// for (var i = startTileY; i < endTileY; i++) {//y
+	// 	for (var j = startTileX; j < endTileX; j++) {//x
+	// 		var thisTileId = map[i][j];
+	// 		var tileFileName = tileId[thisTileId];
+	// 		if (tileFileName) {
+	// 			image(
+	// 				images[tileFileName],
+	// 				(j * TILE_SIZE) - (cameraX),
+	// 				(i * TILE_SIZE) - (cameraY),
+	// 				TILE_SIZE,
+	// 				TILE_SIZE
+	// 			);
+	// 		}
+	// 	}
+	// }
+
+	//chars, enemies, items
+	/*
+	var chars = data.map.characters;
+	for(var character in chars) {
+		var pos = chars[character].getPosition();
+		var isLeft = chars[character].isLeft();
+		var getType = chars[character].getType();
+
+	}
+	*/
+	//person
+	//add positions
+	player.vx += 0;
+	player.vy += TILE_SIZE*.004;
+	player.x += player.vx;
+	player.y += player.vy;
+
+	//find position
+	var playerTileX = Math.floor(player.x / TILE_SIZE);
+	var playerTileY = Math.floor(player.y / TILE_SIZE);
+
+
+	var hitFloor = false;
+	if (playerTileY >= 0 && playerTileY < map.length &&
+		playerTileX >= 0 && playerTileX < map[0].length) {
+		var mapTile = map[playerTileY][playerTileX];
+		if (mapTile > 0) {
+			if (tileAngle[mapTile] != -1) {
+				hitFloor = true;
+				player.vy = -TILE_SIZE/5;
+				player.vx = TILE_SIZE*cos(player.angle-(Math.PI/2))/5;
+				console.log(tileAngle[mapTile]);
+				player.y = playerTileY*TILE_SIZE - 10*TILE_SIZE/30;
+				player.animationState = 1;
+				player.animationStartFrame = frameCount+1;
+			}
+		}
+	}
+
+	if (!hitFloor) {
+		if (player.animationState != 0) {
+			player.animationTime++;
+			if (player.animationTime % 5 == 0) {
+				player.animationState++;
+			}
+			if (player.animationState == 4) {
+				player.animationState = 0;
+			}
+		}
+	}
+
+	if (keyData.RightKeyDown) {
+		player.angle += .1;
+	}
+	if (keyData.LeftKeyDown) {
+		player.angle -= .1;
+	}
+
+	// console.log(player.x, player.y);
+
+	// player.x += 1;
+	// player.y += 2;
+	// player.angle+=.1;
+
+	cameraX += ((player.x - (WIDTH/2)) - cameraX) * .1;
+	cameraY += ((player.y - (HEIGHT/2)) - cameraY) * .1;
+	rotateRoo(
+		images[chars.roo[player.animationState]],
+		player.x - cameraX - TILE_SIZE/2,
+		player.y - cameraY - 2*TILE_SIZE,
+		TILE_SIZE,
+		TILE_SIZE * 2,
+		player.angle
+	);
+	//hud
+}
+
+void getImage(url, name) {
+	if (!name) {
+		name = url;
+	}
+	images[name] = loadImage(IMAGE_URL_PREFIX + url);
+}
+
+void rotateRoo(url, x, y, width, height,angle){
+	translate(x+(width/2), y+(height/2));
+	rotate(angle);
+	translate(-(x+(width/2)),-(y+(height/2)));
+	image(url,x, y, width, height);
+	
+	translate(x+(width/2), y+(height/2));
+	rotate(-angle);
+	translate(-(x+(width/2)),-(y+(height/2)));
+}
+
+var keyData = {RightKeyDown: false, LeftKeyDown: false, DownKeyDown:false};
+$("html").keydown(function (event) {
+	var keyVals = [39, 68, 37, 65, 40, 83];
+	var keyValStrs = ["Right", "d", "Left", "a", "Down", "s"];
+	var key = event.key ? event.key : keyValStrs[keyVals.indexOf(event.keyCode)];
+	switch (key) {
+		case "Right":
+		case "d":
+			keyData.RightKeyDown = true;
+			break;
+		case "Left":
+		case "a":
+			keyData.LeftKeyDown = true;
+			break;
+		case "Down":
+		case "s":
+			keyData.DownKeyDown = true;
+			break;
+	}
+});
+
+$("html").keyup(function (event) {
+	var keyVals = [39, 68, 37, 65, 40, 83];
+	var keyValStrs = ["Right", "d", "Left", "a", "Down", "s"];
+	var key = event.key ? event.key : keyValStrs[keyVals.indexOf(event.keyCode)];
+	switch (key) {
+		case "Right":
+		case "d":
+			keyData.RightKeyDown = false;
+			break;
+		case "Left":
+		case "a":
+			keyData.LeftKeyDown = false;
+			break;
+		case "Down":
+		case "s":
+			keyData.DownKeyDown = false;
+			break;
+	}
+});
+
+</script>
+</head>
+
+<body>
+	<canvas id="mycanvas"></canvas>
+</body>
+
+</html>
